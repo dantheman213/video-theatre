@@ -2,13 +2,16 @@ package com.videotheatre;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
+import java.net.URL;
 import java.util.List;
+import java.util.ResourceBundle;
 
-public class ConfigController {
+public class ConfigController implements Initializable {
     @FXML
     TextArea txtDirectories;
     @FXML
@@ -23,6 +26,30 @@ public class ConfigController {
     CheckBox chkBoxStretchVideo;
     @FXML
     CheckBox chkRemoveWatchedItems;
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        try {
+            var loaded = Settings.loadSettingsFromFile();
+
+            if (loaded) {
+                var videoDirStr = "";
+                for (var str : Settings.videoDirectories) {
+                    videoDirStr += str + "\n";
+                }
+
+                txtDirectories.setText(videoDirStr);
+                optVideoModeNewVideo.setSelected(!Settings.loopVideo);
+                spinnerRows.getValueFactory().setValue(Settings.rowCount);
+                spinnerColumns.getValueFactory().setValue(Settings.columnCount);
+                chkBoxStretchVideo.setSelected(Settings.stretchVideoToGrid);
+                chkRemoveWatchedItems.setSelected(Settings.removeWatchedVideosFromList);
+            }
+        } catch (Exception ex) {
+            // TODO
+            System.err.println(ex);
+        }
+    }
 
     @FXML
     public void buttonSelectDirectory_clicked(ActionEvent event) {
@@ -45,6 +72,12 @@ public class ConfigController {
         Settings.videoDirectories = List.of(txtDirectories.getText().split("\n"));
         Settings.stretchVideoToGrid = chkBoxStretchVideo.isSelected();
         Settings.removeWatchedVideosFromList = chkRemoveWatchedItems.isSelected();
+
+        try {
+            Settings.saveSettingsToFile();
+        } catch (Exception ex) {
+            System.err.println(ex);
+        }
 
         ((Stage)(((Button)event.getSource()).getScene().getWindow())).close();
 

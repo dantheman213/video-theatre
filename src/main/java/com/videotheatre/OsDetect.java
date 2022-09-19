@@ -1,6 +1,10 @@
 package com.videotheatre;
 
+import java.io.File;
+
 public class OsDetect {
+    private static final String appName = "video-theatre";
+
     public enum OperatingSystem {
         WINDOWS_FAMILY,
         MACOS_FAMILY,
@@ -28,4 +32,24 @@ public class OsDetect {
 
         return detectedOperatingSystem;
     }
+
+    public static String getSettingsDir() {
+        var os = detect();
+
+        switch (os) {
+            case WINDOWS_FAMILY -> {
+                return String.format("%s%s%s", System.getenv("AppData"), File.separator, appName);
+            }
+
+            case MACOS_FAMILY -> {
+                return String.format("%s%sLibrary%sApplication Support%s%s", System.getenv("user.home"), File.separator, File.separator, File.separator, appName);
+            }
+
+            case LINUX_FAMILY -> {
+                return String.format("%s%s%s", System.getenv("user.home"), File.separator, appName);
+            }
+        }
+
+        return "";
+    };
 }
