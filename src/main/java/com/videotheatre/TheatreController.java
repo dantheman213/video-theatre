@@ -24,12 +24,12 @@ import javafx.util.Duration;
 
 import java.io.File;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class TheatreController implements Initializable {
@@ -38,17 +38,34 @@ public class TheatreController implements Initializable {
     private static boolean isFirstRunMouse = true;
 
     private static List<String> videoQueue;
+    private static List<String> favoriteQueue;
 
     private static List<TilePane> grids;
 
+    private boolean buttonF_isPressed;
+
     private String getNewVideoPath() {
         // unique vids
-        var randomIndex = Utilities.generateRandomNumber(0, videoQueue.size() - 1);
-        var filePath = videoQueue.get(randomIndex);
+        var randomIndex = -1;
+        var filePath = "";
 
-        if (Settings.removeWatchedVideosFromList) {
-            videoQueue.remove(randomIndex);
+        if (Settings.loadFavorites && favoriteQueue.size() > 0) {
+            randomIndex = Utilities.generateRandomNumber(0, favoriteQueue.size() - 1);
+            filePath = favoriteQueue.get(randomIndex);
+
+            if (Settings.removeWatchedVideosFromList) {
+                favoriteQueue.remove(randomIndex);
+            }
+        } else {
+            randomIndex = Utilities.generateRandomNumber(0, videoQueue.size() - 1);
+            filePath = videoQueue.get(randomIndex);
+
+            if (Settings.removeWatchedVideosFromList) {
+                videoQueue.remove(randomIndex);
+            }
         }
+
+
 
         System.out.printf("Loading video: %s%n", filePath);
         return filePath;
@@ -96,8 +113,8 @@ public class TheatreController implements Initializable {
         player.setOnError(new Runnable() {
             @Override
             public void run() {
-                System.out.printf("UNABLE TO LOAD VIDEO..! %s\n.", player.getMedia().getSource());
                 try {
+                    System.out.printf("UNABLE TO LOAD VIDEO..! %s\n.", Utilities.decodeMediaSourceUrlToFilePath(player.getMedia().getSource()));
                     view.setMediaPlayer(generateMediaPlayer(view));
                 } catch (Exception ex) {
                     System.err.println(ex);
@@ -131,6 +148,12 @@ public class TheatreController implements Initializable {
                 }
             }
         }
+
+        favoriteQueue = new ArrayList<String>();
+        for (var item : Settings.favoriteList) {
+            favoriteQueue.add(item);
+        }
+        //Collections.copy(favoriteQueue, Settings.favoriteList);
     }
 
     public void render(Stage primaryStage) throws Exception {
@@ -239,6 +262,10 @@ public class TheatreController implements Initializable {
             });
 
             sceneMain.setOnKeyPressed(event -> {
+                if (event.getCode().equals(KeyCode.F)) {
+                    buttonF_isPressed = true;
+                }
+
                 if (event.getCode().equals(KeyCode.ESCAPE)) {
                     exitApplication();
                 } else if (event.getCode().equals(KeyCode.R)) {
@@ -246,7 +273,6 @@ public class TheatreController implements Initializable {
                     Settings.loopVideo = !Settings.loopVideo;
                 } else {
                     // check for number press
-
                     var str = event.getText();
 
                     if (str.matches(".*\\d.*")) {
@@ -255,14 +281,9 @@ public class TheatreController implements Initializable {
                             num = 10;
                         }
 
-//                    // TODO,fix for workstations with more than 1-3 monitors
+                        // TODO,fix for workstations with more than 1-3 monitors
                         var targetGrid = 0;
                         var targetVideoIdx = num - 1;
-//
-//                    if (targetVideoIdx + 1> tileCount) {
-//                        targetGrid = 1;
-//                        targetVideoIdx -= tileCount;
-//                    }
 
                         if (event.isControlDown()) {
                             targetGrid = 1;
@@ -279,6 +300,10 @@ public class TheatreController implements Initializable {
                                 // toggle mute for that video
                                 setAllMediaPlayersToMute();
                                 view.getMediaPlayer().setMute(!view.getMediaPlayer().isMute());
+                            } else if (buttonF_isPressed) {
+                                // TODO: show favorite was added
+                                Settings.favoriteList.add(Utilities.decodeMediaSourceUrlToFilePath(view.getMediaPlayer().getMedia().getSource()));
+                                Settings.saveSettingsToFile();
                             } else {
                                 // change video out
                                 view.getMediaPlayer().dispose();
@@ -292,6 +317,12 @@ public class TheatreController implements Initializable {
                             throw new RuntimeException(e);
                         }
                     }
+                }
+            });
+
+            sceneMain.setOnKeyReleased(event -> {
+                if (event.getCode().equals(KeyCode.F)) {
+                    buttonF_isPressed = false;
                 }
             });
 

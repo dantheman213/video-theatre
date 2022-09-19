@@ -26,6 +26,8 @@ public class ConfigController implements Initializable {
     CheckBox chkBoxStretchVideo;
     @FXML
     CheckBox chkRemoveWatchedItems;
+    @FXML
+    CheckBox chkBoxLoadFavorites;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -44,6 +46,7 @@ public class ConfigController implements Initializable {
                 spinnerColumns.getValueFactory().setValue(Settings.columnCount);
                 chkBoxStretchVideo.setSelected(Settings.stretchVideoToGrid);
                 chkRemoveWatchedItems.setSelected(Settings.removeWatchedVideosFromList);
+                chkBoxLoadFavorites.setSelected(Settings.loadFavorites);
             }
         } catch (Exception ex) {
             // TODO
@@ -72,6 +75,7 @@ public class ConfigController implements Initializable {
         Settings.videoDirectories = List.of(txtDirectories.getText().split("\n"));
         Settings.stretchVideoToGrid = chkBoxStretchVideo.isSelected();
         Settings.removeWatchedVideosFromList = chkRemoveWatchedItems.isSelected();
+        Settings.loadFavorites = chkBoxLoadFavorites.isSelected();
 
         try {
             Settings.saveSettingsToFile();

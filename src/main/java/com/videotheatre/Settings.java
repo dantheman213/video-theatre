@@ -3,6 +3,7 @@ package com.videotheatre;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import com.google.gson.GsonBuilder;
 
@@ -13,6 +14,8 @@ public class Settings {
     public static boolean loopVideo;
     public static boolean stretchVideoToGrid;
     public static boolean removeWatchedVideosFromList;
+    public static boolean loadFavorites;
+    public static List<String> favoriteList;
 
     private static String getSettingsFilePath() {
         var path = OsDetect.getSettingsDir();
@@ -26,6 +29,9 @@ public class Settings {
     }
 
     public static boolean loadSettingsFromFile() throws IOException {
+        Settings.videoDirectories = new ArrayList<String>();
+        Settings.favoriteList = new ArrayList<String>();
+
         var settingsPath = getSettingsFilePath();
 
         var file = new File(settingsPath);
@@ -46,6 +52,7 @@ public class Settings {
     }
 
     public static void saveSettingsToFile() throws IOException {
+        // TODO: check and dedupe favorite list
         var settingsPath = getSettingsFilePath();
         var file = new File(settingsPath);
         var settings = new Settings();
