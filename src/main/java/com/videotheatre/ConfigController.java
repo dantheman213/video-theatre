@@ -30,10 +30,15 @@ public class ConfigController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
-            Settings.loadSettingsFromFile();
+            var loaded = Settings.loadSettingsFromFile();
 
-            if (Settings.loaded) {
-                txtDirectories.setText(Settings.videoDirectories.toString());
+            if (loaded) {
+                var videoDirStr = "";
+                for (var str : Settings.videoDirectories) {
+                    videoDirStr += str + "\n";
+                }
+
+                txtDirectories.setText(videoDirStr);
                 optVideoModeNewVideo.setSelected(!Settings.loopVideo);
                 spinnerRows.getValueFactory().setValue(Settings.rowCount);
                 spinnerColumns.getValueFactory().setValue(Settings.columnCount);
