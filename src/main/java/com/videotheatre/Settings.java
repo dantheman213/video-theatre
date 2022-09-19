@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class Settings {
