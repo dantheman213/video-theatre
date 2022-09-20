@@ -27,3 +27,12 @@ After starting session, use the `R` key to toggle repeat off/on.
 ### Exit application
 
 Use the `ESC` key to exit the application.
+
+## Build Application
+
+https://www.graalvm.org/22.2/reference-manual/native-image/
+
+```
+jar cfvm build\libs\video-theatre.jar META-INF\MANIFEST.MF -C build .
+C:\graalvm-ce-java17-22.2.0\bin\native-image.cmd -classpath build\classes -jar build\libs\video-theatre.jar
+```

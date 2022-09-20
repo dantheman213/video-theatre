@@ -28,6 +28,13 @@ application {
     mainClass = 'com.videotheatre.TheatreApplication'
 }
 
+jar {
+    manifest {
+        attributes "Main-Class": "com.videotheatre.TheatreApplication"
+        attributes "Class-Path": configurations.compile.collect { it.absolutePath }.join(" ")
+    }
+}
+
 javafx {
     version = '18.0.1'
     modules = ['javafx.controls', 'javafx.fxml', 'javafx.media']
