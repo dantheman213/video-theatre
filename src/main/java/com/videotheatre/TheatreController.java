@@ -27,9 +27,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class TheatreController implements Initializable {
@@ -193,7 +191,7 @@ public class TheatreController implements Initializable {
                 grid.getChildren().add(mediaView);
             }
 
-            Scene sceneMain = new Scene(grid);
+            var sceneMain = new Scene(grid);
 
             sceneMain.widthProperty().addListener(new ChangeListener<Number>() {
                 @Override public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth, Number newSceneWidth) {
@@ -208,12 +206,12 @@ public class TheatreController implements Initializable {
                 }
             });
 
-
             currentStage.initStyle(StageStyle.UNDECORATED);
             currentStage.setFullScreen(true);
             currentStage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH); // Disable fullscreen exit message
 
             sceneMain.setCursor(Cursor.NONE);
+            sceneMain.setFill(Color.BLACK);
 
             currentStage.setX(screenBounds.getMinX());
             currentStage.setY(screenBounds.getMinY());
@@ -241,6 +239,14 @@ public class TheatreController implements Initializable {
             sceneMain.setOnKeyPressed(event -> {
                 if (event.getCode().equals(KeyCode.ESCAPE)) {
                     exitApplication();
+                } else if (event.getCode().equals(KeyCode.BACK_SPACE)) {
+                    setAllMediaPlayersPlayPause();
+                } else if (event.getCode().equals(KeyCode.SPACE)) {
+                    try {
+                        loadAllNewVideos();
+                    } catch (Exception ex) {
+                        // TODO
+                    }
                 } else if (event.getCode().equals(KeyCode.R)) {
                     // toggle repeat mode
                     Settings.loopVideo = !Settings.loopVideo;
@@ -273,20 +279,13 @@ public class TheatreController implements Initializable {
                         }
 
                         try {
-                            var view = (MediaView)grids.get(targetGrid).getChildren().get(targetVideoIdx);
-
                             if (event.isShiftDown()) {
                                 // toggle mute for that video
+                                var view = (MediaView)grids.get(targetGrid).getChildren().get(targetVideoIdx);
                                 setAllMediaPlayersToMute();
                                 view.getMediaPlayer().setMute(!view.getMediaPlayer().isMute());
                             } else {
-                                // change video out
-                                view.getMediaPlayer().dispose();
-                                var mediaView = generateMediaView();
-                                mediaView.fitWidthProperty().bind(grids.get(targetGrid).prefTileWidthProperty());
-                                mediaView.fitHeightProperty().bind(grids.get(targetGrid).prefTileHeightProperty());
-
-                                grids.get(targetGrid).getChildren().set(targetVideoIdx, mediaView);
+                               setNewMediaPlayer(targetGrid, targetVideoIdx);
                             }
                         } catch (Exception e) {
                             throw new RuntimeException(e);
@@ -295,10 +294,41 @@ public class TheatreController implements Initializable {
                 }
             });
 
-            sceneMain.setFill(Color.BLACK);
-
             currentStage.setScene(sceneMain);
             currentStage.show();
+        }
+
+        var timer = new Timer();
+        var task = new TimerTask() {
+
+            @Override
+            public void run() {
+                checkAllMediaPlayersHalted();
+            }
+        };
+        timer.schedule(task, 3000);
+    }
+
+    private void setNewMediaPlayer(int targetGrid, int targetVideoIdx)  throws Exception {
+        try {
+            // change video out
+            var view = (MediaView)grids.get(targetGrid).getChildren().get(targetVideoIdx);
+            view.getMediaPlayer().dispose();
+            var mediaView = generateMediaView();
+            mediaView.fitWidthProperty().bind(grids.get(targetGrid).prefTileWidthProperty());
+            mediaView.fitHeightProperty().bind(grids.get(targetGrid).prefTileHeightProperty());
+
+            grids.get(targetGrid).getChildren().set(targetVideoIdx, mediaView);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private void loadAllNewVideos() throws Exception {
+        for (var gridIdx = 0; gridIdx < grids.size(); gridIdx++) {
+            for (var videoIdx = 0; videoIdx < grids.get(gridIdx).getChildren().size(); videoIdx++) {
+                setNewMediaPlayer(gridIdx, videoIdx);
+            }
         }
     }
 
@@ -307,6 +337,37 @@ public class TheatreController implements Initializable {
             for (var child : grid.getChildren()) {
                 var view = (MediaView)child;
                 view.getMediaPlayer().setMute(true);
+            }
+        }
+    }
+
+    private void setAllMediaPlayersPlayPause() {
+        for (var grid : grids) {
+            for (var child : grid.getChildren()) {
+                var view = (MediaView)child;
+                var mediaPlayer = view.getMediaPlayer();
+
+                if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                    mediaPlayer.pause();
+                } else {
+                    mediaPlayer.play();
+                }
+            }
+        }
+    }
+
+    private void checkAllMediaPlayersHalted() {
+        for (var grid : grids) {
+            for (var child : grid.getChildren()) {
+                var view = (MediaView)child;
+                var mediaPlayer = view.getMediaPlayer();
+
+                if (mediaPlayer.getStatus() != MediaPlayer.Status.PLAYING &&
+                    mediaPlayer.getStatus() != MediaPlayer.Status.PAUSED) {
+
+                    System.out.printf("detected issue with video... status is: %s, trying to play again\n", mediaPlayer.getStatus().toString());
+                    mediaPlayer.play();
+                }
             }
         }
     }

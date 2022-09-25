@@ -24,6 +24,18 @@ Same rules as above just add the SHIFT modifier to your key combo.
 
 After starting session, use the `R` key to toggle repeat off/on.
 
+### Pause/play videos
+
+```
+BACKSPACE
+```
+
+### Load all new videos
+
+```
+SPACE
+```
+
 ### Exit application
 
 Use the `ESC` key to exit the application.
