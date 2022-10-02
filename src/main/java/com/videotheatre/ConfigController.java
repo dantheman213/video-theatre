@@ -7,11 +7,14 @@ import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
 public class ConfigController implements Initializable {
+    File previousDir;
+
     @FXML
     TextArea txtDirectories;
     @FXML
@@ -56,8 +59,13 @@ public class ConfigController implements Initializable {
         var stage = ((Stage)(((Button)event.getSource()).getScene().getWindow()));
 
         var directoryChooser = new DirectoryChooser();
+        if (previousDir != null) {
+            directoryChooser.setInitialDirectory(previousDir);
+        }
         var selectedDirectory = directoryChooser.showDialog(stage);
         txtDirectories.setText(txtDirectories.getText() + "\n" + selectedDirectory.getAbsolutePath());
+
+        previousDir = selectedDirectory.getParentFile();
     }
 
     @FXML
