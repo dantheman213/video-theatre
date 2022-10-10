@@ -20,6 +20,7 @@ import javafx.scene.media.MediaView;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
 import javafx.util.Duration;
 
 import java.io.File;
@@ -250,6 +251,13 @@ public class TheatreController implements Initializable {
                 } else if (event.getCode().equals(KeyCode.R)) {
                     // toggle repeat mode
                     Settings.loopVideo = !Settings.loopVideo;
+                } else if (event.getCode().equals(KeyCode.M)) {
+                    // minimize application
+                    var windows = Window.getWindows();
+                    for (var window : windows) {
+                        var stage = (Stage)window;
+                        stage.setIconified(true);
+                    }
                 } else {
                     // check for number press
 
